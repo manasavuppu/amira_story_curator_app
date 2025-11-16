@@ -3,23 +3,23 @@ Safety Detection + Skill Tagging + Priority Scoring Pipeline
 
 A hybrid AI system that analyzes children’s stories using heuristics, embeddings, and LLMs to produce reliable safety flags, literacy skill tags, and structured review outputs.
 
-⭐ Features
+Features
 
-🔒 High-recall safety analysis (zero-tolerance detections)
+High-recall safety analysis (zero-tolerance detections)
 
-🧩 LLM-based nuance detection (emotional safety, cultural sensitivity)
+LLM-based nuance detection (emotional safety, cultural sensitivity)
 
-🔎 Skill tagging using embeddings + LLM extraction
+Skill tagging using embeddings + LLM extraction
 
-📊 Priority scoring for human reviewers
+Priority scoring for human reviewers
 
-🖥️ Streamlit UI for interactive exploration
+Streamlit UI for interactive exploration
 
-📁 Structured outputs (CSV + JSONL)
+Structured outputs (CSV + JSONL)
 
-⚡ Hallucination-resistant architecture
+Hallucination-resistant architecture
 
-🏗️ Architecture Overview
+Architecture Overview
 flowchart TD
 
 A[data/stories.csv] --> B[Safety Analysis]
@@ -48,7 +48,7 @@ subgraph D[Outputs]
     D3[Streamlit UI]
 end
 
-🎯 Motivation
+Motivation
 
 LLMs alone are not enough for safety-critical children’s content.
 They hallucinate, miss issues, and cost more.
@@ -59,9 +59,9 @@ Heuristics	Deterministic. No false negatives for weapons, profanity, violence, s
 Embeddings	Semantic grounding → fewer irrelevant skills.
 LLMs	Deep reasoning, rubric alignment, nuance detection.
 Validation layer	Prevents hallucinated evidence.
-🔍 Pipeline Details
+Pipeline Details
 1. Safety Analysis
-🔹 Heuristic Layer (safety_heuristics.py)
+Heuristic Layer (safety_heuristics.py)
 
 Detects:
 
@@ -84,7 +84,7 @@ trigger_text
 (start_char, end_char)
 heuristic_risk_score
 
-🔹 LLM Safety Layer (safety_flagging_pipeline.py)
+LLM Safety Layer (safety_flagging_pipeline.py)
 
 Returns:
 
@@ -96,7 +96,7 @@ Returns:
   "rationale": ""
 }
 
-🔹 Evidence Validation
+Evidence Validation
 
 Drops hallucinated evidence
 
@@ -108,7 +108,7 @@ issue_type = "General Safety Review"
 priority ≈ 0.6
 
 2. Skill Tagging
-🔹 Embedding Prefilter (skill_prefilter_embeddings.py)
+Embedding Prefilter (skill_prefilter_embeddings.py)
 
 MiniLM-L6-v2 embeddings
 
@@ -120,7 +120,7 @@ Flat distributions → keep all
 
 Otherwise → top-K selected
 
-🔹 LLM Skill Extractor (skill_tagging_pipeline.py)
+LLM Skill Extractor (skill_tagging_pipeline.py)
 
 Returns:
 
@@ -134,7 +134,7 @@ justification
 
 Skills missing valid evidence are removed.
 
-🔹 Hybrid Confidence Score
+Hybrid Confidence Score
 llm_conf   = min(confidence_raw, 0.9)
 sim_norm   = clamp(similarity_score, 0.3, 1.0)
 
@@ -158,7 +158,7 @@ Missing evidence
 
 Any safety concern
 
-📁 Repository Structure
+Repository Structure
 amira_story_curator_app/
 │
 ├── app/
@@ -190,7 +190,7 @@ amira_story_curator_app/
 ├── requirements.txt
 └── README.md
 
-⚙️ Installation
+Installation
 git clone https://github.com/manasavuppu/amira_story_curator_app.git
 cd amira_story_curator_app
 
@@ -204,7 +204,7 @@ Create .env:
 
 OPENAI_API_KEY=your_key_here
 
-▶️ Run Batch Processing
+Run Batch Processing
 python -m src.batch_analyze_stories
 
 
@@ -214,7 +214,7 @@ outputs/story_summary.csv
 
 outputs/story_analysis.jsonl
 
-🖥️ Launch the Streamlit UI
+Launch the Streamlit UI
 streamlit run app/streamlit_app.py
 
 
@@ -228,7 +228,7 @@ Skill + flag inspection
 
 Priority scoring
 
-🤖 Models Used
+Models Used
 SentenceTransformers — MiniLM-L6-v2
 
 Semantic similarity for prefiltering
@@ -247,16 +247,16 @@ Skill extraction
 
 JSON-structured reasoning
 
-🔮 Future Enhancements
+Future Enhancements
 
-🔗 RAG grounding for skill tagging
+RAG grounding for skill tagging
 
-🔥 Fine-tuned classifier for high-recall safety
+Fine-tuned classifier for high-recall safety
 
-🧑‍🏫 Reviewer feedback loop
+Reviewer feedback loop
 
-🌍 Multilingual support
+Multilingual support
 
-🪶 Narrative coherence scoring
+Narrative coherence scoring
 
-🛡️ Hallucination-resistant LLM scoring functions
+Hallucination-resistant LLM scoring functions
