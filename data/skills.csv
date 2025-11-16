@@ -1,0 +1,51 @@
+skill_id,skill_name,skill_description
+SKILL-DEC-001,Short Vowels,"Recognizing and pronouncing short vowel sounds (a, e, i, o, u) in simple consonant-vowel-consonant words like 'cat', 'bed', 'sit', 'hot', 'cup'."
+SKILL-DEC-002,Long Vowels,"Reading words with long vowel patterns including silent-e (CVCe) where the final e makes the vowel 'say its name', as in 'cake', 'bike', 'home', 'cute'."
+SKILL-DEC-003,Consonant Blends,"Decoding words with consonant blends at the beginning or end (bl-, cr-, st-, -nd, -mp). Students identify and pronounce these letter combinations that appear together."
+SKILL-DEC-004,Consonant Digraphs,"Recognizing consonant digraphs where two letters make one sound (sh, ch, th, wh, ph). Students learn these letter pairs represent single phonemes."
+SKILL-DEC-005,R-Controlled Vowels,"Reading words where a vowel is followed by 'r', changing the vowel sound (ar, er, ir, or, ur) as in 'car', 'her', 'bird', 'for', 'fur'."
+SKILL-DEC-006,Vowel Teams,"Reading words with vowel teams where two vowels work together to make one sound (ai, ea, oa, ee, ie) like 'rain', 'boat', 'sleep'."
+SKILL-DEC-007,Silent Letters,"Decoding words with silent letters that appear in spelling but aren't pronounced, such as the 'k' in 'knife', 'w' in 'write', or 'b' in 'climb'."
+SKILL-DEC-008,Multisyllabic Words,"Breaking down and decoding longer words by identifying syllable patterns, dividing words into chunks, and blending syllables together."
+SKILL-DEC-009,Prefixes and Suffixes,"Recognizing common prefixes (un-, re-, pre-) and suffixes (-ed, -ing, -ly, -ful) to decode words efficiently and understand meanings."
+SKILL-DEC-010,Compound Words,"Reading compound words by identifying the two smaller words that combine to form one word, like 'sunshine', 'backpack', 'butterfly'."
+SKILL-COMP-001,Main Idea,Identifying the main idea or central message - what the passage is mostly about. Students determine the most important point the author is making.
+SKILL-COMP-002,Key Details,"Identifying and recalling specific details from the text that support the main idea, including facts, information, and evidence."
+SKILL-COMP-003,Character Analysis,"Understanding and analyzing characters' traits, motivations, feelings, actions, and how they change or develop throughout the story."
+SKILL-COMP-004,Setting,"Identifying and describing when and where a story takes place (time period and location), and recognizing how setting influences events."
+SKILL-COMP-005,Plot and Sequence,"Understanding the sequence of events and story structure - what happens first, next, and last (beginning, middle, end)."
+SKILL-COMP-006,Cause and Effect,"Identifying cause and effect relationships - understanding what happens (effect) and why it happens (cause), connecting actions with consequences."
+SKILL-COMP-007,Making Inferences,Reading between the lines by using text evidence combined with prior knowledge to draw conclusions about information not explicitly stated.
+SKILL-COMP-008,Predictions,"Making and confirming predictions about what will happen next based on prior events, context clues, and text patterns."
+SKILL-COMP-009,Compare and Contrast,"Identifying similarities and differences between characters, events, ideas, or texts to develop deeper understanding."
+SKILL-COMP-010,Text Structure,"Recognizing how informational text is organized (chronological, cause/effect, problem/solution, compare/contrast, description) to aid comprehension."
+SKILL-COMP-011,Point of View,Understanding narrative perspective - identifying who is telling the story (first person 'I' vs third person 'he/she') and how it affects meaning.
+SKILL-COMP-012,Theme,Identifying themes and universal lessons - the underlying messages or big ideas the author wants readers to understand about life.
+SKILL-COMP-013,Author's Purpose,"Determining why an author wrote a text - to inform, persuade, entertain, or explain. Understanding the author's goal and intention."
+SKILL-COMP-014,Text Features,"Using headings, captions, diagrams, charts, graphs, bold words, and illustrations to locate information and aid comprehension."
+SKILL-COMP-015,Summarizing,Condensing a text by identifying and restating the most important information concisely while maintaining the original meaning.
+SKILL-VOCAB-001,Context Clues,Using surrounding sentences and words to determine the meaning of unknown vocabulary. Students use hints in the text to figure out new words.
+SKILL-VOCAB-002,Multiple Meanings,Understanding that words can have different meanings depending on context (homonyms). Determining which meaning fits the situation.
+SKILL-VOCAB-003,Figurative Language,"Recognizing and interpreting non-literal language including metaphors, similes, idioms, personification, and other literary devices."
+SKILL-VOCAB-004,Academic Vocabulary,"Understanding content-specific and academic words used in informational texts across subject areas (science, social studies, math)."
+SKILL-VOCAB-005,Word Relationships,"Understanding synonyms (similar meanings), antonyms (opposite meanings), and analogies (relationships between word pairs)."
+SKILL-VOCAB-006,Descriptive Language,"Recognizing vivid adjectives, adverbs, and sensory details that help readers visualize and understand texts more deeply."
+SKILL-VOCAB-007,Homophones,"Distinguishing between words that sound alike but have different spellings and meanings (to/two/too, their/there/they're)."
+SKILL-VOCAB-008,Word Parts,"Using prefixes, suffixes, and root words to break down and understand the meanings of unfamiliar complex words."
+SKILL-KNOW-001,Animals,"Understanding animal behaviors, adaptations, habitats, classifications, and characteristics. Knowledge about different species and their roles in ecosystems."
+SKILL-KNOW-002,Plants and Nature,"Understanding plant life, growth, needs, life cycles, and natural processes like photosynthesis and the role of plants in ecosystems."
+SKILL-KNOW-003,Geography,"Understanding physical geography including landforms (mountains, valleys, plains), bodies of water (oceans, rivers, lakes), and world regions."
+SKILL-KNOW-004,Weather and Climate,"Understanding weather patterns, seasons, climate zones, atmospheric conditions, and how weather affects daily life."
+SKILL-KNOW-005,Earth Science,"Understanding Earth systems and processes including erosion, weathering, the water cycle, rocks, minerals, and natural forces that shape the planet."
+SKILL-KNOW-006,Historical Events,"Understanding significant historical periods, events, wars, movements, and turning points that shaped societies and nations."
+SKILL-KNOW-007,Historical Figures,"Learning about important people in history who made significant contributions through their leadership, inventions, ideas, or actions."
+SKILL-KNOW-008,Cultures and Traditions,"Understanding diverse cultures, customs, traditions, celebrations, holidays, and ways of life from around the world."
+SKILL-KNOW-009,Government and Civics,"Understanding government structures, rights, freedoms, laws, rules, and the roles citizens play in democratic societies."
+SKILL-KNOW-010,Community and Society,"Understanding community helpers, occupations, social roles, family structures, and how communities function together."
+SKILL-KNOW-011,Science Concepts,"Understanding basic scientific concepts including matter, energy, forces, simple machines, and how things work in the physical world."
+SKILL-KNOW-012,Health and Body,"Understanding the human body, body systems, health, nutrition, safety, and medicine. Knowledge about staying healthy and how bodies function."
+SKILL-FLUENCY-001,Sight Word Recognition,"Automatically recognizing common high-frequency words without needing to sound them out, improving reading speed and comprehension."
+SKILL-FLUENCY-002,Reading Accuracy,"Reading words correctly without errors, self-correcting mistakes, and recognizing when something doesn't make sense."
+SKILL-FLUENCY-003,Reading Rate,Reading at an appropriate speed that balances efficiency with comprehension - not too slow or too fast.
+SKILL-FLUENCY-004,Phrasing,"Reading in meaningful phrases and word groups rather than word-by-word, which improves comprehension and sounds more natural."
+SKILL-FLUENCY-005,Expression,"Reading with appropriate emotion, emphasis, and intonation. Using tone, volume, and inflection to convey meaning and engage listeners."
