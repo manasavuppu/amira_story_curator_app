@@ -1,68 +1,139 @@
-1. System Design 
-This document describes the architecture, reasoning, and trade-offs behind my solution to the Amira Story Curator Challenge.
-The system is a hybrid pipeline (Heuristics + Embeddings + LLMs) that:
+Amira Story Curator – Safety & Skill Tagging Pipeline
 
-detects safety and content issues in children’s stories
-assigns reading skill tags from a 50-skill taxonomy
-computes a priority score to focus the content specialist’s limited time
-outputs results in both human-friendly and machine-readable formats
+A fully reproducible Heuristics + Embeddings + LLM hybrid system built for the
+Amira Story Curator Challenge, designed to:
+detect safety issues in children’s stories
+assign reading skill tags from a 50-skill taxonomy
+compute a priority score to triage editorial time
+generate outputs for both human review and downstream automation
+run locally and via a Streamlit UI
 
-1.1 High-Level Architecture
-For each story in data/stories.csv, the system performs:
+This project balances high recall, interpretability, and LLM efficiency, achieving a safety-first pipeline suitable for children’s content analysis.
 
-Step 1 — Safety Analysis
-1. Heuristic Layer: 
-Scan the story for curated keyword patterns mapped to rubric categories
-Identify zero-tolerance and sensitive content
-Produce preliminary flags with:
+1. High-Level System Architecture
+┌──────────────────────────────────────────────────────────────┐
+│                          Story Input                          │
+│                     (data/stories.csv)                        │
+└──────────────────────────────────────────────────────────────┘
+                 │
+                 ▼
+┌──────────────────────────────────────────────────────────────┐
+│                  STEP 1 — Safety Analysis                     │
+│                                                              │
+│  Heuristic Layer                LLM Safety Layer              │
+│  - keyword patterns             - rubric-grounded JSON flags │
+│  - zero-tol. & sensitive        - severity, priority,         │
+│  - spans + risk score             evidence_text, rationale    │
+└──────────────────────────────────────────────────────────────┘
+                 │
+                 ▼
+┌──────────────────────────────────────────────────────────────┐
+│             Evidence Validation + Flag Merging               │
+│ - drop LLM flags with invalid evidence                       │
+│ - add synthetic “General Safety Review” when needed          │
+└──────────────────────────────────────────────────────────────┘
+                 │
+                 ▼
+┌──────────────────────────────────────────────────────────────┐
+│                  STEP 2 — Skill Tagging                      │
+│                                                              │
+│ Embedding Prefilter              LLM Skill Extractor         │
+│ - MiniLM story embedding          - support_level            │
+│ - cosine similarity               - confidence_raw           │
+│ - top-K candidate skills          - evidence + justification │
+│                                                              │
+│ Hybrid Confidence Scoring                                    │
+└──────────────────────────────────────────────────────────────┘
+                 │
+                 ▼
+┌──────────────────────────────────────────────────────────────┐
+│                         Final Outputs                        │
+│ outputs/story_summary.csv                                     │
+│ outputs/story_analysis.jsonl                                  │
+│ Streamlit review UI                                           │
+└──────────────────────────────────────────────────────────────┘
+
+2. Motivation & Goals
+
+Children’s reading content must be safe, age-appropriate, and educationally aligned.
+Traditional single-prompt LLM approaches suffer from:
+hallucinated evidence
+missing critical safety patterns
+poor reproducibility
+expensive token consumption
+
+This solution uses a layered hybrid pipeline to ensure:
+high safety recall
+LLM stability
+verifiable evidence
+semantic skill matching
+interpretable outputs for editors
+
+3. Pipeline Components
+3.1 Safety Analysis
+Heuristic Layer (safety_heuristics.py)
+
+Deterministic keyword scanning for:
+Zero-tolerance (1.0 weight):
+profanity
+weapons, explicit violence
+self-harm
+sexual content
+hate speech
+Sensitive content (0.5 weight):
+bullying
+fear, emotional harm
+unsafe actions
+cultural references
+frightening scenarios
+
+Produces:
+
 issue_type
-evidence span (start_char, end_char)
-heuristic risk score
+start_char, end_char
+trigger_text
+heuristic_score
+LLM Safety Layer (safety_flagging_pipeline.py)
 
-2. LLM Safety Layer
-Use an LLM prompt grounded in the provided rubric
-Identify nuanced issues, e.g., emotional safety, cultural sensitivity, age appropriateness
-Return structured JSON flags with:
-issue_type
-severity
-priority
-evidence_text
-rationale
+An LLM (GPT-4-mini or o-3-mini) receives:
+full story
+detailed rubric
+JSON-mode schema
 
-- clamp purely synthetic, low-signal cases to a high but not critical priority, to avoid over-escalating benign decodables, while still forcing review;
+Returns:
 
-- non-synthetic flags and skills now enforce grounded evidence spans, potentially dropping items whose evidence cannot be located in the story.
+issue_type  
+severity (low/med/high/critical)  
+priority  
+evidence_text (literal substring required)  
+rationale  
 
-3. Evidence Validation & Merging
-Reject any LLM flag whose evidence is not found in the story
-Merge heuristic + LLM flags
-If all evidence fails or text is suspicious → add synthetic “General Safety Review” flag
-Safety Review Decision
-Determine whether needs_human_review = True based on:
-heuristic risk
-severity of issues
-grade level
-LLM priority
-evidence completeness
+Evidence Validation + Merging
+reject flags whose evidence_text is not in the story
+drop hallucinated or floating evidence
+if every LLM flag fails → add:
 
-Step 2 — Skill Tagging
+issue_type = "General Safety Review"
+priority ≈ 0.6
 
+This ensures near-zero false negatives.
+
+3.2 Skill Tagging
 Embedding Prefilter (skill_prefilter_embeddings.py)
-Embed the entire story using MiniLM-L6-v2
-Embed each skill (name + description)
-Compute cosine similarity
 
-If story has weak similarity distribution → don’t over-filter; keep all skills
+To avoid sending all 50 skills to the LLM:
+embed story text with MiniLM-L6-v2
+embed each skill (name + description)
+compute cosine similarity per skill
 
-Otherwise → send only top-K skills (e.g., top 10) to the LLM
+Behavior:
 
-LLM Skill Tagging
-LLM receives:
-story text,
-candidate skills,
-instructions to extract supported skill tags
+if similarity distribution is flat → keep all skills (avoid over-filtering short stories)
+otherwise → send Top-K (≈10) skills to LLM
+LLM Skill Extraction (skill_tagging_pipeline.py)
 
-Outputs:
+LLM returns:
+
 skill_id
 skill_name
 support_level
@@ -70,221 +141,138 @@ confidence_raw
 evidence_text
 justification
 
-Hybrid Confidence
-Compute a blended confidence using both LLM and embeddings:
+
+Skills with no valid evidence are removed.
+
+Hybrid Confidence Scoring
 llm_conf = min(confidence_raw, 0.9)
 sim_norm = clamp(similarity_score, 0.3, 1.0)
-adjusted_conf = 0.6 * sim_norm + 0.4 * llm_conf
+confidence = 0.6 * sim_norm + 0.4 * llm_conf
 
-confidence_raw is preserved
-confidence uses the hybrid score
-Higher similarity increases trust in the tag
 
-Step 3 — Outputs
-The system writes:
-outputs/story_summary.csv
-Spreadsheet-friendly triage table for content specialists
-Includes: priority score, flags, skills, grade, human-review fields
-outputs/story_analysis.jsonl
-Detailed structured output per story
-Contains all flags, spans, severities, priorities, skill tags, evidence, and scores
-Streamlit App
-Browse stories
-Highlight evidence
-Review flags and skills
-Future-ready for human feedback logging
+This balances:
+semantic closeness (embeddings)
+rubric reasoning (LLM)
 
-1.2 Key Design Decisions
+3.3 Priority Scoring
 
-Hybrid Instead of “All LLM”
-Rejected approach:
-Call a single large LLM prompt per story containing:
-full rubric
-all 50 skills
-full story text
-instruction to output safety, skills, and priority
+Final score:
 
-Why rejected:
-High false-negative risk without heuristics
-Slow & expensive (large prompts)
-Harder to tune or debug
-Black-box priority logic
-No control over evidence validation or safety recall
-Chosen Approach: Hybrid Architecture
-
-Heuristics → deterministic safety net; guarantee recall on critical patterns
-Embeddings → semantic filtering; reduce LLM load
-LLMs → nuanced, rubric-aware reasoning
-
-This provides:
-stronger safety recall
-more trustworthy skill tagging
-tunable and explainable priority scoring
-faster and cheaper execution
-
-1.3 Detecting Safety Issues
-
-Heuristic Layer – safety_heuristics.py
-Two signal groups:
-Zero-Tolerance (weight 1.0)
-profanity
-explicit violence, weapons
-self-harm
-sexual content
-hate speech
-
-Sensitive (weight 0.5)
-bullying, exclusion
-emotional abuse, fear
-unsafe behavior
-cultural/identity references
-frightening scenarios
-
-Each match → a flag with:
-issue_type
-trigger_text
-start_char, end_char
-
-Heuristic risk score:
-heuristic_score = min(1.0, (1*num_zero_tol + 0.5*num_sensitive) / 10)
-
-This becomes one of the components of the final priority score.
-
-LLM Safety Layer – safety_flagging_pipeline.py
-LLM receives:
-full story
-full rubric (safety, age, cultural, emotional, technical)
-structured JSON instructions
-
-Returns flags containing:
-issue_type
-severity (low / medium / high / critical)
-priority (0–1)
-evidence_text (must be literal substring)
-rationale
-
-Evidence Validation:
-If evidence is not extractable from the story → flag is dropped.
-If all evidence fails, story is marked “suspicious” → synthetic safety flag added.
-
-1.4 Assigning Skills
-
-Embedding Prefilter – skill_prefilter_embeddings.py
-Embed story text
-Embed each skill’s:
-name
-description
-
-Compute cosine similarity
-If similarity variance is tiny (story is short, generic, unclear):
-→ return all skills (avoid over-filtering)
-
-Otherwise:
-→ return top K (e.g., top 10) skills to send to the LLM
-
-This yields a numeric similarity_score per skill.
-
-LLM Skill Tagging – skill_tagging_pipeline.py
-LLM rates each candidate skill with:
-support_level
-confidence_raw
-evidence_text
-justification
-
-Skills with no evidence are dropped.
-
-Hybrid Confidence
-llm_conf = min(confidence_raw, 0.9)
-sim_norm = clamp(similarity_score, 0.3, 1.0)
-adjusted_conf = 0.6 * sim_norm + 0.4 * llm_conf
-
-Embeddings provide semantic grounding
-LLM confidence refines the semantic signal
-Hybrid scoring helps rank skills for the reviewer
-
-1.5 Prioritizing Content Specialist Time
-Each story receives:
-Final Priority Score
 priority =
-  0.5 * max_llm_flag_priority  +
-  0.2 * heuristic_score         +
-  0.2 * severity_component      +
-  0.1 * grade_factor
+    0.5 * max_llm_flag_priority +
+    0.2 * heuristic_score +
+    0.2 * severity_component +
+    0.1 * grade_factor
 
-Components:
-max_llm_flag_priority → strongest flagged issue
-heuristic_score → deterministic safety signals
-severity_component → severity mapped to 0–1
-grade_factor → younger grades (K–3) boosted
 
-Forced Review Conditions
-A synthetic "General Safety Review" is added when:
-heuristic risk is non-trivial
-any LLM flag suggests concern
-grade ≤ 3 (content more sensitive for young readers)
-evidence validation fails
-story is very short, malformed, or empty
+Enforced review conditions ensure:
+early grades (K–3)
+suspicious stories
+missing evidence
+any flagged safety issues
 
-This ensures very low false-negatives for safety and appropriateness.
+→ ALWAYS get human review.
 
-1.6 Why This Automation + LLM Blend Works
-Heuristics
-deterministic, cheap, transparent
-catch critical patterns reliably
-handle obvious unsafe content
-Embeddings
-semantic filtering
-reduce cost and noise
-support hybrid confidence
-LLMs
-interpret rubric nuance
-identify emotional/cultural/age issues
-provide justifications & evidence
+4. Why Not an All-LLM Approach?
 
-Together, they deliver:
-high recall for safety
-reasonable precision for skill tagging
-consistency across stories
-easy debugging and tuning
-predictable cost
+Rejected design: one huge prompt per story with full rubric + skills.
 
-1.7 Precision, Recall, Cost & Speed
-Safety Flags
-Prioritize recall (don’t miss dangerous content)
-Accept minor over-flagging because humans review final results
-Skill Tags
+Issues:
+high false negatives
+slow (large context window)
+expensive
+fragile JSON parsing
+no control over evidence grounding
 
-Balanced: slight recall preference
-Goal is to surface skills for confirmation, not perfection
-Performance
-Embeddings reduce LLM token usage
-JSON-mode prompts reduce parsing failures
-Strict evidence validation improves reliability
-Heuristics allow fast triage even before LLM calls
+Hybrid = safer + cheaper + more interpretable.
 
-1.8 Design Trade-offs (Summary)
+5. Repository Structure
+amira_story_curator_app/
+│
+├── app/
+│   └── streamlit_app.py          # Streamlit UI
+│
+├── src/
+│   ├── safety_heuristics.py
+│   ├── safety_flagging_pipeline.py
+│   ├── skill_prefilter_embeddings.py
+│   ├── skill_tagging_pipeline.py
+│   ├── llm_clients.py
+│   └── config.py
+│
+├── data/
+│   ├── stories.csv
+│   ├── skills.csv
+│   └── content_rubric.md
+│
+├── outputs/
+│   ├── story_summary.csv
+│   └── story_analysis.jsonl
+│
+├── docs/
+│   ├── output_spec.md
+│   ├── content_interface.md
+│   ├── feedback_proposal.md
+│   └── runbook.md
+│
+├── requirements.txt
+└── README.md
 
-- Safety vs. Convenience**
-  - Chosen: Over-flag rather than miss issues.
-  - Rationale: False negatives on safety are unacceptable for children’s content.
-  - Impact: Some extra reviewer time, but much higher trust in the system.
+6. Installation & Setup
+Clone the repo
+git clone https://github.com/manasavuppu/amira_story_curator_app.git
+cd amira_story_curator_app
 
-- Hybrid (Heuristics + LLM) vs. All-LLM**
-  - Chosen: Hybrid.
-  - Rationale: Heuristics guarantee certain patterns are never missed; LLMs handle nuance.
-  - Impact: Better recall, easier debugging, and controllable cost.
+Create virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
 
-- Two-Stage Pipeline vs. One Giant Prompt**
-  - Chosen: Separate safety and skill passes.
-  - Rationale: Safety and pedagogy have different rubrics and thresholds; separating them makes prompts clearer and tuning easier.
-  - Impact: More interpretable outputs, simpler prompt evolution, and more stable behavior.
+Install dependencies
+pip install -r requirements.txt
 
-- Embeddings + LLM vs. LLM-only Skill Tagging**
-  - Chosen: Embedding prefilter + LLM decision.
-  - Rationale: Embeddings cheaply narrow the candidate skill set and provide a similarity score; LLM focuses on justification and evidence.
-  - Impact: Lower token costs and better stability without sacrificing coverage.
+Add OpenAI API Key
 
-- Recall vs. Precision for Skills**
-  - Chosen: Slight recall bias.
-  - Rationale: It is faster for reviewers to trim a few extra skills than to create missing ones from scratch.
-  - Impact: More complete tagging, especially early in system life.
+Create .env:
+
+OPENAI_API_KEY=your_key_here
+
+7. Run the Pipeline Locally
+Batch analysis
+python -m src.batch_analyze_stories
+
+Writes:
+
+outputs/story_summary.csv
+outputs/story_analysis.jsonl
+
+8. Run the Streamlit App
+streamlit run app/streamlit_app.py
+
+Features:
+browse stories
+highlight evidence spans
+inspect safety flags
+inspect skills + confidence
+view priority explanations
+
+9. Models & Citations
+MiniLM-L6-v2 (SentenceTransformers)
+
+Reimers & Gurevych, 2019
+https://www.sbert.net/docs/pretrained_models.html
+
+OpenAI GPT-4-mini / o-3-mini
+
+Used for:
+safety rubric evaluation
+skill extraction
+JSON-mode inference
+
+10. Future Enhancements
+
+RAG-based reading skill grounding
+fine-tuned classifier for zero-shot safety recall
+human-feedback loop storing reviewer corrections
+multi-lingual story support
+narrative coherence scoring
+hallucination-resistant LLM scoring with A/B constraint prompts
