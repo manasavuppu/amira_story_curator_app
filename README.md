@@ -1,4 +1,4 @@
-Amira Story Curator
+Amira Story Curator - App: https://storycuratoramiraapp.streamlit.app/ 
 Hybrid Safety Detection • Skill Tagging • Priority Scoring for Children’s Stories
 
 This project analyzes children’s stories using a hybrid pipeline combining heuristics, embeddings, and LLMs to produce reliable safety flags, literacy skill tags, and reviewer-ready structured outputs.
