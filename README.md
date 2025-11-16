@@ -1,92 +1,55 @@
 Amira Story Curator
-Safety Detection + Skill Tagging + Priority Scoring Pipeline
+Hybrid Safety Detection • Skill Tagging • Priority Scoring for Children’s Stories
 
-A hybrid AI system that analyzes children’s stories using heuristics, embeddings, and LLMs to produce reliable safety flags, literacy skill tags, and structured review outputs.
+This project analyzes children’s stories using a hybrid pipeline combining heuristics, embeddings, and LLMs to produce reliable safety flags, literacy skill tags, and structured reviewer-ready outputs.
 
-⭐ Features
+✨ Features
 
-🔒 High-recall safety analysis (zero-tolerance detections)
+High-recall safety detection (zero-tolerance matching)
 
-🧩 LLM-based nuance detection (emotional safety, cultural sensitivity)
+LLM-based nuance reasoning (emotional safety, cultural sensitivity, age fit)
 
-🔎 Skill tagging using embeddings + LLM extraction
+Skill tagging using embeddings + LLM extraction
 
-📊 Priority scoring for human reviewers
+Hybrid confidence scoring to reduce hallucinations
 
-🖥️ Streamlit UI for interactive exploration
+Priority scoring for reviewer triage
 
-📁 Structured outputs (CSV + JSONL)
+Streamlit UI for reviewing stories and flags
 
-⚡ Hallucination-resistant architecture
+Structured outputs (CSV + JSONL)
 
-🏗️ Architecture Overview
-flowchart TD
-
-A[data/stories.csv] --> B[Safety Analysis]
-
-subgraph B[STEP 1 — Safety Analysis]
-    B1[Heuristic Layer<br/>• Zero-tolerance checks<br/>• Span detection<br/>• Risk score]
-    B2[LLM Safety Layer<br/>• issue_type<br/>• severity<br/>• priority<br/>• evidence + rationale]
-    B3[Evidence Validation<br/>Drop hallucinations<br/>Merge flags<br/>Add fallback review]
-    B1 --> B2 --> B3
-end
-
-B --> C[STEP 2 — Skill Tagging]
-
-subgraph C[Skill Tagging]
-    C1[Embedding Prefilter<br/>MiniLM-L6-v2 cosine similarity]
-    C2[LLM Skill Extractor<br/>evidence & justification]
-    C3[Hybrid Confidence Scoring]
-    C1 --> C2 --> C3
-end
-
-C --> D[STEP 3 — Final Outputs]
-
-subgraph D[Outputs]
-    D1[story_summary.csv]
-    D2[story_analysis.jsonl]
-    D3[Streamlit UI]
-end
-
-🎯 Motivation
-
-LLMs alone are not enough for safety-critical children’s content.
-They hallucinate, miss issues, and cost more.
-
-Hybrid = the best of all worlds
-Component	Why It Matters
-Heuristics	Deterministic. No false negatives for weapons, profanity, violence, self-harm.
-Embeddings	Semantic grounding → fewer irrelevant skills.
-LLMs	Deep reasoning, rubric alignment, nuance detection.
-Validation layer	Prevents hallucinated evidence.
-🔍 Pipeline Details
+🔎 Architecture Overview
 1. Safety Analysis
-🔹 Heuristic Layer (safety_heuristics.py)
+Heuristic Layer
 
 Detects:
 
-Profanity
+profanity
 
-Weapons
+weapons
 
-Violence
+violence
 
-Self-harm
+self-harm
 
-Bullying
+bullying
 
-Unsafe behaviors
+unsafe behaviors
 
-Outputs:
+Produces:
 
 issue_type
+
 trigger_text
-(start_char, end_char)
+
+start_char, end_char
+
 heuristic_risk_score
 
-🔹 LLM Safety Layer (safety_flagging_pipeline.py)
+LLM Safety Layer
 
-Returns:
+Returns structured JSON:
 
 {
   "issue_type": "",
@@ -96,67 +59,66 @@ Returns:
   "rationale": ""
 }
 
-🔹 Evidence Validation
+Evidence Validation
 
-Drops hallucinated evidence
+Removes hallucinated evidence
 
-Ensures evidence_text matches the story
+Verifies evidence appears in story text
 
-If everything fails:
-
-issue_type = "General Safety Review"
-priority ≈ 0.6
+Falls back to General Safety Review if evidence is missing
 
 2. Skill Tagging
-🔹 Embedding Prefilter (skill_prefilter_embeddings.py)
+Embedding Prefilter
 
-MiniLM-L6-v2 embeddings
+Uses MiniLM-L6-v2 to embed stories + skills
 
-Compare story → skills
+Computes cosine similarity
 
-Cosine similarity
+Selects Top-K candidates
 
-Flat distributions → keep all
-
-Otherwise → top-K selected
-
-🔹 LLM Skill Extractor (skill_tagging_pipeline.py)
+LLM Skill Extractor
 
 Returns:
 
-skill_id
-skill_name
+skill_id, skill_name
+
 support_level
+
 confidence_raw
+
 evidence_text
+
 justification
 
+Invalid evidence → skill removed.
 
-Skills missing valid evidence are removed.
-
-🔹 Hybrid Confidence Score
-llm_conf   = min(confidence_raw, 0.9)
-sim_norm   = clamp(similarity_score, 0.3, 1.0)
+Hybrid Confidence Score
+llm_conf = min(confidence_raw, 0.9)
+sim_norm = clamp(similarity_score, 0.3, 1.0)
 
 confidence = 0.6 * sim_norm + 0.4 * llm_conf
 
 3. Priority Scoring
-priority =
-  0.5 * max_llm_flag_priority +
-  0.2 * heuristic_score +
-  0.2 * severity_component +
-  0.1 * grade_factor
 
+Final priority considers:
 
-Stories are always flagged for review if:
+max LLM-assigned priority
 
-Grade ≤ 3
+heuristic risk score
 
-Suspicious structure
+severity of issues
 
-Missing evidence
+grade-level adjustments
 
-Any safety concern
+Stories are always escalated if:
+
+grade ≤ 3
+
+suspicious structure
+
+missing evidence
+
+any safety flag
 
 📁 Repository Structure
 amira_story_curator_app/
@@ -196,7 +158,6 @@ cd amira_story_curator_app
 
 python3 -m venv .venv
 source .venv/bin/activate
-
 pip install -r requirements.txt
 
 
@@ -208,7 +169,7 @@ OPENAI_API_KEY=your_key_here
 python -m src.batch_analyze_stories
 
 
-Outputs written to:
+Outputs:
 
 outputs/story_summary.csv
 
@@ -220,43 +181,32 @@ streamlit run app/streamlit_app.py
 
 Features:
 
-Story browser
+Story browsing
 
 Evidence highlighting
 
-Skill + flag inspection
+Skill + safety flag inspection
 
-Priority scoring
+Priority scoring preview
 
 🤖 Models Used
-SentenceTransformers — MiniLM-L6-v2
 
-Semantic similarity for prefiltering
-
-Ref: Reimers & Gurevych (2019)
-
-https://www.sbert.net/docs/pretrained_models.html
+MiniLM-L6-v2 (SentenceTransformers)
+Used for semantic similarity in prefiltering.
 
 OpenAI GPT Models
-
-Used for:
-
-Safety analysis
-
-Skill extraction
-
-JSON-structured reasoning
+Used for safety analysis, skill extraction, and structured JSON reasoning.
 
 🔮 Future Enhancements
 
-🔗 RAG grounding for skill tagging
+RAG-grounded skill tagging
 
-🔥 Fine-tuned classifier for high-recall safety
+Fine-tuned safety classifier
 
-🧑‍🏫 Reviewer feedback loop
+Reviewer feedback loop
 
-🌍 Multilingual support
+Multilingual story support
 
-🪶 Narrative coherence scoring
+Narrative coherence scoring
 
-🛡️ Hallucination-resistant LLM scoring functions
+Hallucination-resistant scoring improvements
