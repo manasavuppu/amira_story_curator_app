@@ -153,9 +153,12 @@ fragile JSON outputs
 ✔ Hybrid = safer + cheaper + more interpretable + more controllable
 
 5. Repository Structure
+
 amira_story_curator_app/
+
 ├── app/
 │   └── streamlit_app.py
+
 ├── src/
 │   ├── safety_heuristics.py
 │   ├── safety_flagging_pipeline.py
@@ -163,19 +166,24 @@ amira_story_curator_app/
 │   ├── skill_tagging_pipeline.py
 │   ├── llm_clients.py
 │   └── config.py
+
 ├── data/
 │   ├── stories.csv
 │   ├── skills.csv
 │   └── content_rubric.md
+
 ├── outputs/
 │   ├── story_summary.csv
 │   └── story_analysis.jsonl
+
 ├── docs/
 │   ├── output_spec.md
 │   ├── content_interface.md
 │   ├── feedback_proposal.md
 │   └── runbook.md
+
 ├── requirements.txt
+
 └── README.md
 
 ⚙️ 6. Installation & Setup
